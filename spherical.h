@@ -56,11 +56,13 @@ protected:
 };
 
 template <class T>
-Float integral(T &func_, double tolerance_ = 1.0e-10)
+Float integral(T &func_,
+               const Float tolerance_ = 1.0e-10,
+               const Float minTheta_ = 0.,
+               const Float maxTheta_ = M_PI)
 {
     ThetaFunctor<T> thetaFunctor(func_);
-    Float res = integrate::adaptive(thetaFunctor, 0., M_PI, tolerance_);
-    //std::cerr << res << std::endl;
+    Float res = integrate::adaptive(thetaFunctor, minTheta_, maxTheta_, tolerance_);
     return res;
 }
 

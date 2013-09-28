@@ -1,6 +1,7 @@
 #pragma once
 
-#include <ostream>
+#include <stdint.h>
+#include <iostream>
 #include "vector3.h"
 
 
@@ -48,11 +49,11 @@ struct Point
 
     inline void appendPhoton(const Vector3 &_r, const long _scatterings)
     {
-	if (isnan(_r.x())) {
+	    if (isnan(_r.x())) {
 
             std::cerr << "_r.x() is nan (appendPhoton)" << std::endl;
-	    exit(-1);
-	}
+	        throw;
+	    }
 
         Vector3 _r2(_r.x()*_r.x(),   _r.y()*_r.y(),   _r.z()*_r.z());
         Vector3 _r3(_r2.x()*_r.x(),  _r2.y()*_r.y(),  _r2.z()*_r.z());
@@ -67,10 +68,11 @@ struct Point
         r5 += _r5;
         r6 += _r6;
 
-	if (isnan(r.x())) {
+	    if (isnan(r.x())) {
+
             std::cerr << "r.x() is nan (appendPhoton)" << std::endl;
-	    exit(-1);
-	}
+	        throw;
+	    }
 
         scatterings += _scatterings;
         ++measurements;
@@ -78,7 +80,7 @@ struct Point
 
     void average()
     {
-	if (0 == measurements)
+	    if (0 == measurements)
             std::cerr << "measurements = 0" << std::endl;
 	
         r  /= measurements;
