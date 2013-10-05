@@ -1,84 +1,33 @@
 #pragma once
 
 #include <ostream>
+#include <map>
+#include <vector>
 
-#include "point.h"
-#include "optics.h"
+#include "intensity_contribution.h"
+
+
 
 class DataBuff
 {
 public:
 
-    typedef ::Point Point;
-    typedef std::vector<Point> Points;
+    typedef std::vector<int>                     OrdersContainer;
+    typedef std::map<int, IntensityContribution> Contributions;
 
-    DataBuff()
-      : points()
-    {}
+    DataBuff(const int phiSize, const int thetaSize,
+            const OrdersContainer &orders = OrdersContainer());
 
-    DataBuff(const int pointsNum, const Float maxTime)
-      : points()
-    {
-        prepare(pointsNum, maxTime);
-    }
+    void clear();
 
-    void prepare(const int pointsNum, const Float maxTime)
-    {
-        points.clear();
-        points.reserve(pointsNum);
+    DataBuff& operator+=(const DataBuff &other);
+    void append(const IntensityContribution &ic, const int order);
 
-        for (int i = 0; i < pointsNum; ++i) {
+    friend std::ostream &operator<< (std::ostream &stream,
+                                     const DataBuff &buff);
+    
+private:
 
-            Point pt;
-            pt.time = i * (maxTime / pointsNum);
-            points.push_back(pt);
-        }
-    }
-
-    void clear()
-    {
-        Points::iterator i = points.begin();
-        for (; i != points.end(); ++i) {
-
-            i->clear();
-        }
-    }
-
-    DataBuff& operator+=(const DataBuff& rhv)
-    {
-        Points::iterator i = points.begin();
-        Points::const_iterator j = rhv.points.begin();
-
-        for (; i != points.end(); ++i, ++j) {
-
-            *i += *j;
-        }
-
-        return *this;
-    }
-
-    void average()
-    {
-        Points::iterator i = points.begin();
-        for (; i != points.end(); ++i) {
-
-            if (i->measurements)
-                i->average();
-        }
-    }
-
-
-    friend std::ostream &operator<< (std::ostream &stream, const DataBuff &buff)
-    {
-        DataBuff::Points::const_iterator i = buff.points.begin();
-        for (; i != buff.points.end(); ++i) {
-
-            if (i->measurements)
-                stream << i->time / Optics::c << "\t" << *i << std::endl;
-        }
-
-        return stream;
-    }
-
-    Points points;
+    IntensityContribution totalContribution;
+    Contributions         orderContributions;
 };

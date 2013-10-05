@@ -1,6 +1,7 @@
 #pragma once
 
 #include "integrate.h"
+#include "vector3.h"
 
 namespace spherical {
 

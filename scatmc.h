@@ -135,7 +135,7 @@ private:
     int64_t m_photonCnt;
     int64_t m_saveRate;
 
-    DataBuff m_dataBuff;
+    DataBuff *m_dataBuff;
 
 private:
 

@@ -53,7 +53,7 @@ ScatMCApp::ScatMCApp()
   , m_oEscFunction()
   , m_photonCnt(0)
   , m_saveRate(0)
-  , m_dataBuff()
+  , m_dataBuff(0)
 {
 }
 
@@ -420,7 +420,6 @@ Partition pOE, pEO, pEE;
         */
     }
 
-    m_dataBuff.average();
 
     output();
     return 0;
@@ -521,7 +520,7 @@ void ScatMCApp::flushBuffers(int64_t &scatteredCount, DataBuff &buff)
 {
     #pragma omp critical
     {
-        m_dataBuff += buff;
+        *m_dataBuff += buff;
         m_photonCnt += scatteredCount;
 
         std::cerr << "Photons: " << m_photonCnt << std::endl;
