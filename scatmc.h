@@ -8,6 +8,7 @@
 #include "distance.h"
 #include "partition.h"
 #include "escfunction.h"
+#include "idxnorm.h"
 
 
 class Photon;
@@ -44,6 +45,8 @@ private:
           , eeProbabilityOptions(Create)
           , eEscFunctionOptions(Create)
           , oEscFunctionOptions(Create)
+          , oNormOptions(Create)
+          , eNormOptions(Create)
           , eeProfileName()
           , oeProfileName()
           , eoProfileName()
@@ -52,6 +55,8 @@ private:
           , eeProbabilityName()
           , eEscFunctionName()
           , oEscFunctionName()
+          , oNormName()
+          , eNormName()
           , seed(1000)
           , maxPhotons(1000)
           , maxScatterings(1000)
@@ -75,6 +80,8 @@ private:
         FileOptions eeProbabilityOptions;
         FileOptions eEscFunctionOptions;
         FileOptions oEscFunctionOptions;
+        FileOptions oNormOptions;
+        FileOptions eNormOptions;
         std::string eeProfileName;
         std::string oeProfileName;
         std::string eoProfileName;
@@ -83,6 +90,8 @@ private:
         std::string eeProbabilityName;
         std::string eEscFunctionName;
         std::string oEscFunctionName;
+        std::string oNormName;
+        std::string eNormName;
 
         int     seed;
         int64_t maxPhotons;
@@ -109,6 +118,12 @@ private:
                          const int options,
                          const std::string &fileName);
 
+    template <typename T>
+    bool  prepareNorm(LinearInterpolation &l,
+                      const char *name,
+                      const int options,
+                      const std::string &fileName);
+
     bool  prepareEChannelProb(LinearInterpolation& prob);
 
     template <typename T>
@@ -131,6 +146,9 @@ private:
 
     EscFunction m_eEscFunction;
     EscFunction m_oEscFunction;
+
+    LinearInterpolation m_eNorm;
+    LinearInterpolation m_oNorm;
 
     int64_t m_photonCnt;
     int64_t m_saveRate;
@@ -183,6 +201,48 @@ bool ScatMCApp::prepareFreePath(LinearInterpolation &l,
 
     return true;
 }
+
+template <typename T>
+bool ScatMCApp::prepareNorm(LinearInterpolation &l,
+                            const char *name,
+                            const int options,
+                            const std::string &fileName)
+{
+    using namespace std;
+
+    if (options == Load) {
+
+        cerr << "loading " << name << "-beam indicatrix norm file..." << endl;
+
+        if (!l.load(fileName)) {
+
+            cerr << "can't load " << name << "-beam indicatrix data" << endl;
+            return false;
+        }
+    }
+
+    if (options == Create || options == Save) {
+
+        cerr << "calculating " << name << "-beam free path data..." << endl;
+        createNorm<T>(l);
+    }
+
+    if (options == Save) {
+
+        cerr << "saving " << name << "-beam indicatrix norm data to file..." << endl;
+
+        if (!l.save(fileName)) {
+
+            cerr << "can't save " << name << "-beam indicatrix norm data" << endl;
+            return false;
+        }
+    }
+
+    cerr << "done" << endl;
+
+    return true;
+}
+
 
 
 template <typename T>

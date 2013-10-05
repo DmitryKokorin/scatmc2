@@ -51,6 +51,8 @@ ScatMCApp::ScatMCApp()
   , m_eChannelProb()
   , m_eEscFunction()
   , m_oEscFunction()
+  , m_eNorm()
+  , m_oNorm()
   , m_photonCnt(0)
   , m_saveRate(0)
   , m_dataBuff(0)
@@ -219,6 +221,22 @@ bool ScatMCApp::getOpts(int argc, char ** argv)
             options_.oEscFunctionOptions = Load;
             options_.oEscFunctionName    = argv[i];
         }
+        else if (arg == "--loadonorm") {
+
+            if (++i == argc)
+                return false;
+
+            options_.oNormOptions = Load;
+            options_.oNormName    = argv[i];
+        }
+        else if (arg == "--loadenorm") {
+
+            if (++i == argc)
+                return false;
+
+            options_.eNormOptions = Load;
+            options_.eNormName    = argv[i];
+        }
         else if (arg == "--saveoeprofile") {
 
             if (++i == argc)
@@ -282,6 +300,22 @@ bool ScatMCApp::getOpts(int argc, char ** argv)
 
             options_.oEscFunctionOptions = Save;
             options_.oEscFunctionName    = argv[i];
+        }
+        else if (arg == "--saveonorm") {
+
+            if (++i == argc)
+                return false;
+
+            options_.oNormOptions = Save;
+            options_.oNormName    = argv[i];
+        }
+        else if (arg == "--saveenorm") {
+
+            if (++i == argc)
+                return false;
+
+            options_.eNormOptions = Save;
+            options_.eNormName    = argv[i];
         }
 
         else
@@ -369,6 +403,20 @@ Partition pOE, pEO, pEE;
         return -1;
     }
 
+#if !defined TEST
+    //free path
+    if (!prepareNorm<Optics::OBeam>(m_oNorm, "o",
+                options_.oNormOptions, options_.oNormName)) {
+
+        return -1;
+    }
+#endif
+
+    if (!prepareNorm<Optics::EBeam>(m_eNorm, "e",
+                options_.eNormOptions, options_.eNormName)) {
+
+        return -1;
+    }
 
 
     cerr << "scattering..." << endl;
