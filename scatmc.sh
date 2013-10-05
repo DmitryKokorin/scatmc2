@@ -5,20 +5,23 @@ PHOTONS=10000
 SCATTERINGS=10000
 SEED=42
 H='0.2'
+LABEL="starkexp"
 
 
-WORK_DIR=output-$(hostname)-starkexp-${H}T-e-pi_2-$(date +%Y%m%d)
+WORK_DIR=output-$(hostname)-${LABEL}-${H}T-e-pi_2-$(date +%Y%m%d)
 LOG_FILE=$WORK_DIR/"diffmc.log"
 
 
-OEPARTITION_FILE="oepartition_${H}T_starkexp.txt"
-EOPARTITION_FILE="eopartition_${H}T_starkexp.txt"
-EEPARTITION_FILE="eepartition_${H}T_starkexp.txt"
-OFREEPATH_FILE="ofreepath_${H}T_starkexp.txt"
-EFREEPATH_FILE="efreepath_${H}T_starkexp.txt"
-ECHANNELPROB_FILE="echannel_${H}T_starkexp.txt"
-OEXTFUNCTION_FILE="oextfunction_${H}T_starkexp.txt"
-EEXTFUNCTION_FILE="eextfunction_${H}T_starkexp.txt"
+OEPARTITION_FILE="oepartition_${H}T_${LABEL}.txt"
+EOPARTITION_FILE="eopartition_${H}T_${LABEL}.txt"
+EEPARTITION_FILE="eepartition_${H}T_${LABEL}.txt"
+OFREEPATH_FILE="ofreepath_${H}T_${LABEL}.txt"
+EFREEPATH_FILE="efreepath_${H}T_${LABEL}.txt"
+ECHANNELPROB_FILE="echannel_${H}T_${LABEL}.txt"
+OEXTFUNCTION_FILE="oextfunction_${H}T_${LABEL}.txt"
+EEXTFUNCTION_FILE="eextfunction_${H}T_${LABEL}.txt"
+ONORM_FILE="onorm_${H}T_${LABEL}.txt"
+ENORM_FILE="enorm_${H}T_${LABEL}.txt"
 
 mkdir -p $WORK_DIR
 
@@ -42,6 +45,8 @@ make
         --saveechannelprob $ECHANNELPROB_FILE \
         --saveoextfunction ${OEXTFUNCTION_FILE} \
         --saveeextfunction ${EEXTFUNCTION_FILE} \
+        --saveonorm ${ONORM_FILE} \
+        --saveenorm ${ENORM_FILE} \
         --photons $PHOTONS \
         --scatterings $SCATTERINGS \
         --seed $SEED \
