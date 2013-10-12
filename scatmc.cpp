@@ -55,7 +55,7 @@ ScatMCApp::ScatMCApp()
   , m_oNorm()
   , m_photonCnt(0)
   , m_saveRate(0)
-  , m_dataBuff(0)
+  , m_buffers()
 {
 }
 
@@ -344,7 +344,20 @@ int ScatMCApp::run()
     cerr << "# phiSize = "   << options_.phiSize    << endl;
     cerr << "# maxTheta = "  << options_.maxTheta   << endl;
 
-//FIXME    m_dataBuff.prepare();
+
+
+    //TODO: get orders from parameters
+    //allocate arrays for individual scattering orders data
+    int orders[] = {0, 1, 2, 3, 4, 5, 10, 50, 100, 300, 500, 1000, \
+                    3000, 5000, 10000, 30000, 50000, 100000};
+
+    int ordersLength = sizeof(orders)/sizeof(orders[0]);
+
+    for (int i = 0; i < ordersLength; ++i) {
+
+        m_buffers.push_back(Buffer(orders[i]));
+    }
+
 
 #if !defined TEST
     //free path
@@ -426,8 +439,11 @@ Partition pOE, pEO, pEE;
     m_saveRate  = omp_get_max_threads()*flushRate;
 
     const Float t = 0.5*M_PI; //angle with director
-    //FIXME const Vector3 initVector = Vector3(cos(t), 0, sin(t)).normalize();
+    const Vector3 initVector = Vector3(cos(t), 0, sin(t)).normalize();
     cerr << "initial angle: " << t << endl;
+
+
+    Data::setResolution(options_.phiSize, options_.thetaSize, options_.maxTheta);
 
 
     //main loop
@@ -438,34 +454,31 @@ Partition pOE, pEO, pEE;
 
         rng_engine.seed(options_.seed + kSeedIncrement*omp_get_thread_num());
 
-        /*FIXME
-        int64_t scatteredCount = 0;
-        DataBuff buff(options_.points, options_.maxTime);
+        BuffersList buffers = m_buffers;
 
+        int64_t scatteredCount = 0;
 
         #pragma omp for schedule (dynamic)
         for (int64_t i = 0; i < options_.maxPhotons; ++i) {
 
             Photon ph(rng_engine, initVector, Optics::ECHANNEL);
-            size_t timeIdx = 0;
 
-            while ((ph.scatterings < options_.maxScatterings)
-                    && (ph.time <= options_.maxTime)) {
+            while (   (ph.scatterings < options_.maxScatterings)
+                   && (ph.weight > options_.minWeight)         ) {
 
                 ph.move();
 
-                timeIdx = processScattering(ph, buff, timeIdx);
+                processScattering(ph, buffers);
 
                 ph.scatter();
 
             }
 
             if (++scatteredCount == flushRate)
-                flushBuffers(scatteredCount, buff);
+                flushBuffers(scatteredCount, buffers);
         }
 
-        flushBuffers(scatteredCount, buff);
-        */
+        flushBuffers(scatteredCount, buffers);
     }
 
 
@@ -474,26 +487,32 @@ Partition pOE, pEO, pEE;
 }
 
 
-void ScatMCApp::processScattering(const Photon& /*ph*/,
-                                  DataBuff& /*buff*/)
+void ScatMCApp::processScattering(const Photon &ph,
+                                  BuffersList &buffers)
 {
-    //choose current indicatrix
-
+    Buffer buff(ph.scatterings);
     //calculate 2d-array of contributions
 
     //append to buff
+
+    BuffersList::iterator i = buffers.begin();
+    for (; i != buffers.end(); ++i) {
+
+        if (   i->order == buff.order
+            || i->order == 0 ) {
+
+            *i += buff;
+        }
+    }
 }
 
 void ScatMCApp::output()
 {
-    std::stringstream ss;
-    ss << options_.workDir << "out.txt";
+    BuffersList::const_iterator i = m_buffers.begin();
+    for (; i != m_buffers.end(); ++i) {
 
-    std::fstream stream(ss.str().c_str()
-            , std::fstream::out | std::fstream::trunc);
-
-    stream << m_dataBuff;
-    stream.close();
+        outputBuffer(*i, options_.workDir);
+    }
 }
 
 void ScatMCApp::printHelp()
@@ -564,12 +583,20 @@ bool ScatMCApp::prepareEChannelProb(LinearInterpolation& l)
     return true;
 }
 
-void ScatMCApp::flushBuffers(int64_t &scatteredCount, DataBuff &buff)
+void ScatMCApp::flushBuffers(int64_t &scatteredCount, BuffersList &buffers)
 {
     #pragma omp critical
     {
-        *m_dataBuff += buff;
         m_photonCnt += scatteredCount;
+
+        BuffersList::iterator i = m_buffers.begin();
+        BuffersList::iterator j = buffers.begin();
+
+        for (; i != m_buffers.end(); ++i, ++j) {
+
+            *i += *j;
+            j->clear();
+        }
 
         std::cerr << "Photons: " << m_photonCnt << std::endl;
 
@@ -578,5 +605,4 @@ void ScatMCApp::flushBuffers(int64_t &scatteredCount, DataBuff &buff)
     }
 
     scatteredCount = 0.;
-    buff.clear();
 }

@@ -48,6 +48,7 @@ Photon::Photon(RngEngine& rng_engine_, const Vector3& s, const int channel_) :
     scatterings(0),
     channel(channel_),
     time(0),
+    weight(1.),
     rng_engine(rng_engine_),
     oLength(*s_oLength),
     eLength(*s_eLength),

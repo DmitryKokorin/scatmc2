@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 
-#include "databuff.h"
+#include "buffer.h"
 #include "interval.h"
 #include "distance.h"
 #include "partition.h"
@@ -60,6 +60,7 @@ private:
           , seed(1000)
           , maxPhotons(1000)
           , maxScatterings(1000)
+          , minWeight(0.)
           , phiSize(100)
           , thetaSize(100)
           , escPhiSize(100)
@@ -96,6 +97,7 @@ private:
         int     seed;
         int64_t maxPhotons;
         int64_t maxScatterings;
+        Float   minWeight;
         int     phiSize;
         int     thetaSize;
         int     escPhiSize;
@@ -107,9 +109,11 @@ private:
 
     Options options_;
 
-    void flushBuffers(int64_t &scatteredCount, DataBuff &buff);
+    typedef std::list<Buffer> BuffersList;
+
+    void flushBuffers(int64_t &scatteredCount, BuffersList &buffersList);
     void output();
-    void processScattering(const Photon& ph, DataBuff& buff);
+    void processScattering(const Photon& ph, BuffersList &buffersList);
 
 
     template <typename T>
@@ -153,7 +157,7 @@ private:
     int64_t m_photonCnt;
     int64_t m_saveRate;
 
-    DataBuff *m_dataBuff;
+    BuffersList m_buffers;
 
 private:
 

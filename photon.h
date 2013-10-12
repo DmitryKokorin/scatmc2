@@ -48,6 +48,7 @@ public:
     int64_t  scatterings;
     int      channel;
     Float    time;
+    Float    weight;
 
 private:
 
