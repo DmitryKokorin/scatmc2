@@ -403,7 +403,7 @@ Partition pOE, pEO, pEE;
  
 #if !defined TEST
     //free path
-    if (!prepareEscFunction<Optics::OBeam>(m_oEscFuncttion, "o",
+    if (!prepareEscFunction<Optics::OBeam>(m_oEscFunction, "o",
                 options_.oEscFunctionOptions, options_.oEscFunctionName)) {
 
         return -1;
@@ -468,7 +468,10 @@ Partition pOE, pEO, pEE;
 
                 ph.move();
 
-                processScattering(ph, buffers);
+                if (Optics::OCHANNEL == ph.channel)
+                    processScattering<Optics::OBeam>(ph, buffers);
+                else
+                    processScattering<Optics::EBeam>(ph, buffers);
 
                 ph.scatter();
 
@@ -486,12 +489,65 @@ Partition pOE, pEO, pEE;
     return 0;
 }
 
-
+template <typename T>
 void ScatMCApp::processScattering(const Photon &ph,
                                   BuffersList &buffers)
 {
     Buffer buff(ph.scatterings);
     //calculate 2d-array of contributions
+    
+    Indicatrix<T, Optics::OBeam> indO(ph.s_i, Optics::director);
+    Indicatrix<T, Optics::EBeam> indE(ph.s_i, Optics::director);
+
+    Float otheta = symmetrizeTheta(Angle(ph.s_i, Optics::director).theta);
+    Float norm = Optics::OCHANNEL == ph.channel ? m_oNorm(otheta)
+                                                : m_eNorm(otheta);
+
+    const Float thetaStep = Data::thetaMax / Data::thetaSize;
+    const Float phiStep   = 2*M_PI / Data::phiSize;
+
+    for (int i = 0; i < Data::thetaSize; ++i)
+        for (int j = 0; j < Data::phiSize; ++j) {
+
+            Float theta_s = i*thetaStep;
+            Float phi_s   = j*phiStep;
+
+            Float sintheta_s = sin(theta_s);
+            Float costheta_s = cos(theta_s);
+
+            Vector3 s_s = Vector3(sintheta_s*cos(phi_s),
+                                  sintheta_s*sin(phi_s),
+                                  -costheta_s);
+
+            Angle a_s = Angle(s_s, Optics::director);
+
+            Float dist   = std::abs(ph.pos.z() / s_s.z());
+            Float x      = ph.pos.x() + dist*s_s.x();
+            Float y      = ph.pos.y() + dist*s_s.y();
+
+            Float symmetrizedTheta = symmetrizeTheta(a_s.theta);
+
+            Float oLengthFactor = exp(-dist/m_oLength(symmetrizedTheta));
+            Float eLengthFactor = exp(-dist/m_eLength(symmetrizedTheta));
+
+            Vector3 R  = Vector3(x, y, 0);
+            Vector3 qe = Optics::EBeam::k(s_s, a_s)*Optics::k0;
+            Vector3 qo = Optics::OBeam::k(s_s, a_s)*Optics::k0;
+
+            Float oProbFactor = indO(s_s)/norm;
+            Float eProbFactor = indE(s_s)/norm;
+
+            Float oLadderRes = ph.weight*(oLengthFactor*oProbFactor);
+            Float oCyclicRes = oLadderRes*cos(qo*R);
+            Float eLadderRes = ph.weight*(eLengthFactor*eProbFactor);
+            Float eCyclicRes = eLadderRes*cos(qe*R);
+
+            buff.oLadder.data[j][i] += oLadderRes;
+            buff.oCyclic.data[j][i] += oCyclicRes;
+            buff.eLadder.data[j][i] += eLadderRes;
+            buff.oCyclic.data[j][i] += eCyclicRes;
+
+        } 
 
     //append to buff
 

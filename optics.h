@@ -5,8 +5,8 @@
 #include "angle.h"
 #include "vector3.h"
 
-#define TEST 1
-#define EE_ONLY 1
+//#define TEST 1
+//#define EE_ONLY 1
 
 
 namespace Optics {

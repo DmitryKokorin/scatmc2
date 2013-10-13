@@ -63,7 +63,7 @@ void Data::clear()
 std::ostream &operator<<(std::ostream &stream, const Data &data)
 {
     const Float thetaStep = Data::thetaMax / Data::thetaSize;
-    const Float phiStep   = M_PI / Data::phiSize;
+    const Float phiStep   = 2*M_PI / Data::phiSize;
 
     for (int i = 0; i < Data::thetaSize; ++i) {
 

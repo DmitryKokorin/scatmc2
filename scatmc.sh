@@ -35,16 +35,16 @@ make
 
 
 #gdb -ex run --args  \
-./diffmc \
+./scatmc2 \
         --workdir $WORK_DIR \
-        --saveoepartition $OEPARTITION_FILE \
-        --saveeopartition $EOPARTITION_FILE \
-        --saveeepartition $EEPARTITION_FILE \
+        --saveoeprofile $OEPARTITION_FILE \
+        --saveeoprofile $EOPARTITION_FILE \
+        --saveeeprofile $EEPARTITION_FILE \
         --saveofreepath $OFREEPATH_FILE \
         --saveefreepath $EFREEPATH_FILE \
-        --saveechannelprob $ECHANNELPROB_FILE \
-        --saveoextfunction ${OEXTFUNCTION_FILE} \
-        --saveeextfunction ${EEXTFUNCTION_FILE} \
+        --saveeeprobability $ECHANNELPROB_FILE \
+        --saveoescfunction ${OEXTFUNCTION_FILE} \
+        --saveeescfunction ${EEXTFUNCTION_FILE} \
         --saveonorm ${ONORM_FILE} \
         --saveenorm ${ENORM_FILE} \
         --photons $PHOTONS \
@@ -52,4 +52,4 @@ make
         --seed $SEED \
         2> $LOG_FILE &
 
-tail -f $WORK_DIR/$LOG_FILE
+tail -f $LOG_FILE

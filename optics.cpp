@@ -9,6 +9,11 @@ const Vector3 director = Vector3(1., 0., 0.);
 
 const Float eps_par = 3.0;
 const Float eps_perp = 2.2;
+
+const Float eps_par2            = eps_par*eps_par;
+const Float eps_perp2           = eps_perp*eps_perp;
+const Float eps_perp_eps_par    = eps_perp*eps_par;
+const Float eps_par_eps_perp2   = eps_par*eps_perp2;
 const Float eps_a = eps_par - eps_perp;
 
 const Float _no = sqrt(eps_perp);
@@ -48,7 +53,7 @@ const Float k0 = 2.*M_PI / lambda;
 const Float T = 301.;
 const Float Kb = 1.38e-16;
 
-const Float H = 15.0e+4;
+const Float H = 0.2e+4;
 //const Float Hi_alpha = 5e-6;
 const Float Hi_alpha = 1.1e-7;
 const Float xi = sqrt(K3/Hi_alpha)/H;

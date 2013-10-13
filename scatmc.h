@@ -59,14 +59,14 @@ private:
           , eNormName()
           , seed(1000)
           , maxPhotons(1000)
-          , maxScatterings(1000)
-          , minWeight(0.)
-          , phiSize(100)
-          , thetaSize(100)
+          , maxScatterings(100000)
+          , minWeight(1e-8)
+          , phiSize(512)
+          , thetaSize(512)
           , escPhiSize(100)
           , escThetaSize(100)
-          , escZSize(100)
-          , escMaxZ(1e-4)
+          , escZSize(200)
+          , escMaxZ(1.)
           , maxTheta(1e-4)
         {}
 
@@ -113,6 +113,8 @@ private:
 
     void flushBuffers(int64_t &scatteredCount, BuffersList &buffersList);
     void output();
+
+    template <typename T>
     void processScattering(const Photon& ph, BuffersList &buffersList);
 
 
