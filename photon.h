@@ -18,6 +18,7 @@ class LinearInterpolation;
 class Partition;
 class PartitionChunk;
 class Angle;
+class EscFunction;
 
 
 typedef std::tr1::mt19937 RngEngine;
@@ -37,7 +38,9 @@ public:
                         Partition*              oePartition,
                         Partition*              eoPartition,
                         Partition*              eePartition,
-                        LinearInterpolation*    eChannelProb);
+                        LinearInterpolation*    eChannelProb,
+                        EscFunction*            oEscFunction,
+                        EscFunction*            eEscFunction);
 
     void move();
     void scatter();
@@ -69,6 +72,9 @@ private:
 
     static LinearInterpolation* s_eChannelProb;
 
+    static EscFunction*         s_oEscFunction;
+    static EscFunction*         s_eEscFunction;
+
     //these are to simulate static behavior for a reference (without ugly pointer syntax)
     LinearInterpolation&    oLength;
     LinearInterpolation&    eLength;
@@ -78,6 +84,9 @@ private:
     Partition&              eePartition;
 
     LinearInterpolation&    eChannelProb;
+
+    EscFunction&            oEscFunction;
+    EscFunction&            eEscFunction;
 
     PartitionChunk *m_chunk; //current chunk
 

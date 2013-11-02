@@ -76,8 +76,8 @@ public:
         Float dist = z / _s.z();
         Float theta = symmetrizeTheta(Angle(_s, Optics::director).theta);
 
-        return   indO(_s)*exp(dist/FreePathO(theta)) +
-               + indE(_s)*exp(dist/FreePathE(theta));
+        return   indO(_s)*exp(-dist/FreePathO(theta)) +
+               + indE(_s)*exp(-dist/FreePathE(theta));
     }
 
 protected:
@@ -171,10 +171,13 @@ bool EscFunction::create(   const LinearInterpolation& oFreePath,
 
                 FunctorNorm<IndicatrixO, IndicatrixE> functorNorm(indO, indE);
 
-                Float res =  integral(functor, 1e-10, 0.5*M_PI, M_PI);
-                Float norm = integral(functorNorm, 1e-10);
+                Float norm = integral(functorNorm, 1e-5);
+                Float res = k > 0 ? integral(functor, 1e-5, 0.5*M_PI, M_PI)
+                                  : 0.5*norm;
 
                 m_array[k][j][i] = res / norm;
+
+                fprintf(stderr, "k=%lu\n", k);
             }
 
             fprintf(stderr, "%lu\t%lu\n", (ULong)i, j);

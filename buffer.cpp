@@ -49,7 +49,7 @@ Data& Data::operator=(const Data &_other)
 Data& Data::operator+=(const Data &_other)
 {
     for (int i = 0; i < phiSize*thetaSize; ++i)
-        *data[i] += *_other.data[i];
+        (*data)[i] += (*_other.data)[i];
 
     return *this;
 }

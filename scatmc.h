@@ -229,7 +229,7 @@ bool ScatMCApp::prepareNorm(LinearInterpolation &l,
 
     if (options == Create || options == Save) {
 
-        cerr << "calculating " << name << "-beam free path data..." << endl;
+        cerr << "calculating " << name << "-beam indicatrix norm data..." << endl;
         createNorm<T>(l);
     }
 

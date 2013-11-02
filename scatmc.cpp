@@ -433,9 +433,13 @@ Partition pOE, pEO, pEE;
 
 
     cerr << "scattering..." << endl;
-    Photon::init(&m_oLength, &m_eLength, &pOE, &pEO, &pEE, &m_eChannelProb);
+    Photon::init(&m_oLength, &m_eLength,
+                 &pOE, &pEO, &pEE,
+                 &m_eChannelProb,
+                 &m_oEscFunction, &m_eEscFunction
+                 );
 
-    const int64_t flushRate = 1000;
+    const int64_t flushRate = 20;
     m_saveRate  = omp_get_max_threads()*flushRate;
 
     const Float t = 0.5*M_PI; //angle with director
@@ -445,6 +449,9 @@ Partition pOE, pEO, pEE;
 
     Data::setResolution(options_.phiSize, options_.thetaSize, options_.maxTheta);
 
+
+    std::cerr << "maxScatterings: " << options_.maxScatterings << std::endl;
+    std::cerr << "minWeight: " << options_.minWeight << std::endl;
 
     //main loop
 
@@ -458,10 +465,15 @@ Partition pOE, pEO, pEE;
 
         int64_t scatteredCount = 0;
 
-        #pragma omp for schedule (dynamic)
+        //#pragma omp for schedule (dynamic)
         for (int64_t i = 0; i < options_.maxPhotons; ++i) {
 
             Photon ph(rng_engine, initVector, Optics::ECHANNEL);
+
+            std::cerr << i << std::endl;
+            std::cerr << "ph.scatterings " << ph.scatterings << std::endl;
+            std::cerr << "ph.weight " << ph.weight << std::endl;
+
 
             while (   (ph.scatterings < options_.maxScatterings)
                    && (ph.weight > options_.minWeight)         ) {

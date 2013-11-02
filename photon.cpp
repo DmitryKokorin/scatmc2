@@ -11,6 +11,7 @@
 #include "freepath.h"
 #include "coords.h"
 #include "photon.h"
+#include "escfunction.h"
 
 
 LinearInterpolation*    Photon::s_oLength       = NULL;
@@ -22,6 +23,9 @@ Partition*              Photon::s_eePartition   = NULL;
 
 LinearInterpolation*    Photon::s_eChannelProb  = NULL;
 
+EscFunction*            Photon::s_oEscFunction  = NULL;
+EscFunction*            Photon::s_eEscFunction  = NULL;
+
 
 
 void Photon::init(  LinearInterpolation*    oLength_,
@@ -29,7 +33,9 @@ void Photon::init(  LinearInterpolation*    oLength_,
                     Partition*              oePartition_,
                     Partition*              eoPartition_,
                     Partition*              eePartition_,
-                    LinearInterpolation*    eChannelProb_)
+                    LinearInterpolation*    eChannelProb_,
+                    EscFunction*            oEscFunction_,
+                    EscFunction*            eEscFunction_)
 {
     s_oLength     = oLength_;
     s_eLength     = eLength_;
@@ -39,6 +45,9 @@ void Photon::init(  LinearInterpolation*    oLength_,
     s_eePartition = eePartition_;
 
     s_eChannelProb = eChannelProb_;
+
+    s_oEscFunction = oEscFunction_;
+    s_eEscFunction = eEscFunction_;
 }
 
 
@@ -56,6 +65,8 @@ Photon::Photon(RngEngine& rng_engine_, const Vector3& s, const int channel_) :
     eoPartition(*s_eoPartition),
     eePartition(*s_eePartition),
     eChannelProb(*s_eChannelProb),
+    oEscFunction(*s_oEscFunction),
+    eEscFunction(*s_eEscFunction),
     m_chunk(NULL)
 {
 }
@@ -77,9 +88,11 @@ void Photon::move()
     const Float meanFreePath = (Optics::OCHANNEL == channel) ? oLength(theta) : eLength(theta);
 #endif
 
+    Float c1 = (s_i.z() >= 0) ? 1. : -expm1((pos.z()/s_i.z())/meanFreePath);
+
     rnd = random();
 
-    const Float d = -log1p(-rnd)*meanFreePath;
+    const Float d = -log1p(-c1*rnd)*meanFreePath;
 
     pos  += d*s_i;
 
@@ -98,6 +111,19 @@ void Photon::move()
 
 void Photon::scatter()
 {
+    //reduce weight
+
+    if (Optics::OCHANNEL == channel) {
+
+        weight *= (1. - oEscFunction(acos(s_i.z()),
+                    atan2(s_i.y(),s_i.x()), pos.z()));
+    }
+    else {
+
+        weight *= (1. - eEscFunction(acos(s_i.z())
+                    , atan2(s_i.y(),s_i.x()), pos.z()));
+    }
+
     //prepare random numbers
     Float randChannel = random();
     Float randRect    = random();
