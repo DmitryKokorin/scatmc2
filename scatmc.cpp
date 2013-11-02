@@ -465,14 +465,14 @@ Partition pOE, pEO, pEE;
 
         int64_t scatteredCount = 0;
 
-        //#pragma omp for schedule (dynamic)
+        #pragma omp for schedule (dynamic)
         for (int64_t i = 0; i < options_.maxPhotons; ++i) {
 
             Photon ph(rng_engine, initVector, Optics::ECHANNEL);
 
-            std::cerr << i << std::endl;
-            std::cerr << "ph.scatterings " << ph.scatterings << std::endl;
-            std::cerr << "ph.weight " << ph.weight << std::endl;
+            //std::cerr << i << std::endl;
+            //std::cerr << "ph.scatterings " << ph.scatterings << std::endl;
+            //std::cerr << "ph.weight " << ph.weight << std::endl;
 
 
             while (   (ph.scatterings < options_.maxScatterings)
