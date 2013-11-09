@@ -1,5 +1,8 @@
 #include "escfunction.h"
 
+//#include <iostream>
+#include <algorithm>
+
 EscFunction::EscFunction() :
     m_maxZ(0.),
     m_thetaSize(0),
@@ -21,13 +24,31 @@ Float EscFunction::operator()(const Float theta, const Float phi, const Float z)
 {
     if (z >= m_maxZ)
         return 0;
+/*
+    bool flag = false;
+    if (phi == -1.8369701987210297e-16) {
 
+        std::cerr << theta << ' '
+            << phi << ' ' << z << '\n';
+                    
+        flag = true;
+    }
+*/
     Float phi_ = phi >= 0 ? phi : 2.*M_PI + phi;
     phi_ = phi_ < M_PI ? phi_ : phi_ - M_PI;    // n and -n are equivalent
 
-    int zIdx = (int)(z/m_zStep);
-    int phiIdx = (int)(phi_/m_phiStep);
-    int thetaIdx = (int)(theta/m_thetaStep);
+    int zIdx     = std::min((int)(z/m_zStep), (int)m_zSize - 1);
+    int phiIdx   = std::min((int)(phi_/m_phiStep), (int)m_phiSize - 1);
+    int thetaIdx = std::min((int)(theta/m_thetaStep), (int)m_thetaSize - 1);
+
+    
+ /*   if (flag) {
+
+        std::cerr << zIdx << ' '
+            << phiIdx << ' ' << thetaIdx << '\n';
+                    
+    }
+*/
 
     if (zIdx == (int)(m_zSize - 1))
         return m_array[zIdx][phiIdx][thetaIdx];

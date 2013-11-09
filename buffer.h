@@ -30,6 +30,8 @@ public:
     static int   phiSize;
     static int   thetaSize;
     static Float thetaMax;
+    static Float phiStep;
+    static Float thetaStep;
 };
 
 class Buffer

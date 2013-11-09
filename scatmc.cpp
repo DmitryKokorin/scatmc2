@@ -346,17 +346,6 @@ int ScatMCApp::run()
 
 
 
-    //TODO: get orders from parameters
-    //allocate arrays for individual scattering orders data
-    int orders[] = {0, 1, 2, 3, 4, 5, 10, 50, 100, 300, 500, 1000, \
-                    3000, 5000, 10000, 30000, 50000, 100000};
-
-    int ordersLength = sizeof(orders)/sizeof(orders[0]);
-
-    for (int i = 0; i < ordersLength; ++i) {
-
-        m_buffers.push_back(Buffer(orders[i]));
-    }
 
 
 #if !defined TEST
@@ -439,7 +428,9 @@ Partition pOE, pEO, pEE;
                  &m_oEscFunction, &m_eEscFunction
                  );
 
-    const int64_t flushRate = 20;
+    //const int64_t flushRate = 20;
+    const int64_t flushRate = 1;
+
     m_saveRate  = omp_get_max_threads()*flushRate;
 
     const Float t = 0.5*M_PI; //angle with director
@@ -448,6 +439,18 @@ Partition pOE, pEO, pEE;
 
 
     Data::setResolution(options_.phiSize, options_.thetaSize, options_.maxTheta);
+
+    //TODO: get orders from parameters
+    //allocate arrays for individual scattering orders data
+    int orders[] = {0, 1, 2, 3, 4, 5, 10, 50, 100, 300, 500, 1000, \
+                    3000, 5000, 10000, 30000, 50000, 100000};
+
+    int ordersLength = sizeof(orders)/sizeof(orders[0]);
+
+    for (int i = 0; i < ordersLength; ++i) {
+
+        m_buffers.push_back(Buffer(orders[i]));
+    }
 
 
     std::cerr << "maxScatterings: " << options_.maxScatterings << std::endl;
@@ -512,20 +515,21 @@ void ScatMCApp::processScattering(const Photon &ph,
     Indicatrix<T, Optics::EBeam> indE(ph.s_i, Optics::director);
 
     Float otheta = symmetrizeTheta(Angle(ph.s_i, Optics::director).theta);
+
     Float norm = Optics::OCHANNEL == ph.channel ? m_oNorm(otheta)
-                                                : m_eNorm(otheta);
+                                          : m_eNorm(otheta);
 
-    const Float thetaStep = Data::thetaMax / Data::thetaSize;
-    const Float phiStep   = 2*M_PI / Data::phiSize;
+    for (int i = 0; i < Data::thetaSize; ++i) {
 
-    for (int i = 0; i < Data::thetaSize; ++i)
+        Float theta_s = i*Data::thetaStep;
+        Float sintheta_s = sin(theta_s);
+        Float costheta_s = cos(theta_s);
+
+        Float dist   = std::abs(ph.pos.z() / costheta_s);
+
         for (int j = 0; j < Data::phiSize; ++j) {
 
-            Float theta_s = i*thetaStep;
-            Float phi_s   = j*phiStep;
-
-            Float sintheta_s = sin(theta_s);
-            Float costheta_s = cos(theta_s);
+            Float phi_s   = j*Data::phiStep;
 
             Vector3 s_s = Vector3(sintheta_s*cos(phi_s),
                                   sintheta_s*sin(phi_s),
@@ -533,7 +537,6 @@ void ScatMCApp::processScattering(const Photon &ph,
 
             Angle a_s = Angle(s_s, Optics::director);
 
-            Float dist   = std::abs(ph.pos.z() / s_s.z());
             Float x      = ph.pos.x() + dist*s_s.x();
             Float y      = ph.pos.y() + dist*s_s.y();
 
@@ -550,23 +553,38 @@ void ScatMCApp::processScattering(const Photon &ph,
             Float eProbFactor = indE(s_s)/norm;
 
             Float oLadderRes = ph.weight*(oLengthFactor*oProbFactor);
-            Float oCyclicRes = oLadderRes*cos(qo*R);
             Float eLadderRes = ph.weight*(eLengthFactor*eProbFactor);
-            Float eCyclicRes = eLadderRes*cos(qe*R);
 
             buff.oLadder.data[j][i] += oLadderRes;
-            buff.oCyclic.data[j][i] += oCyclicRes;
             buff.eLadder.data[j][i] += eLadderRes;
-            buff.oCyclic.data[j][i] += eCyclicRes;
 
+            if (ph.scatterings >= 1) {
+
+                Float oCyclicRes = oLadderRes*cos(qo*R);
+                Float eCyclicRes = eLadderRes*cos(qe*R);
+
+                buff.oCyclic.data[j][i] += oCyclicRes;
+                buff.eCyclic.data[j][i] += eCyclicRes;
+            }
+
+            if (isnan(oLadderRes) || std::abs(oLadderRes) > 1) {
+
+                std::cerr << "oLadderRes isnan! " << oLadderRes << std::endl;
+                std::cerr << indO(s_s) << ' '
+                          << norm << ' '
+                          << ph.weight << ' '
+                          << oLengthFactor << ' '
+                          << oProbFactor << std::endl;
+            }
         } 
+    }
 
     //append to buff
 
     BuffersList::iterator i = buffers.begin();
     for (; i != buffers.end(); ++i) {
 
-        if (   i->order == buff.order
+        if (   i->order <= buff.order
             || i->order == 0 ) {
 
             *i += buff;

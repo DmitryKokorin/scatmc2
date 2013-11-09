@@ -10,6 +10,8 @@
 int   Data::phiSize    = 1;
 int   Data::thetaSize  = 1;
 Float Data::thetaMax   = 0.;
+Float Data::phiStep    = 2*M_PI / Data::phiSize;
+Float Data::thetaStep  = Data::thetaMax / Data::thetaSize;
 
 
 void Data::setResolution(const int _phiSize,
@@ -19,12 +21,16 @@ void Data::setResolution(const int _phiSize,
     phiSize   = _phiSize;
     thetaSize = _thetaSize;
     thetaMax  = _thetaMax;
+
+    phiStep   = 2*M_PI / Data::phiSize;
+    thetaStep = thetaMax / thetaSize;
 }
 
 Data::Data()
   : data(0)
 {
     data = allocate2dArray<Float>(phiSize, thetaSize);
+    clear();
 }
 
 Data::Data(const Data& other)
@@ -64,6 +70,9 @@ std::ostream &operator<<(std::ostream &stream, const Data &data)
 {
     const Float thetaStep = Data::thetaMax / Data::thetaSize;
     const Float phiStep   = 2*M_PI / Data::phiSize;
+
+    stream.setf(std::ios::scientific);
+    stream.precision(17);
 
     for (int i = 0; i < Data::thetaSize; ++i) {
 

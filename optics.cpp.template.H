@@ -19,19 +19,20 @@ const Float eps_a = eps_par - eps_perp;
 const Float _no = sqrt(eps_perp);
 
 
-//const Float K3 = 6.1e-7;
-/*const Float K3 = 7.5e-7;
+const Float K3 = 6.1e-7;
+//const Float K3 = 7.5e-7;
 const Float t1 = 0.79;
 const Float t2 = 0.43;
 const Float K1 = t1*K3;
 const Float K2 = t2*K3;
-*/
+
 /*
 const Float sum = 6.1e-7*(1. + 0.79 + 0.43);
 const Float K3 = sum*0.7;
 const Float K1 = sum*0.2;
 const Float K2 = sum*0.1;
 */
+/*
 const Float sum = 7.5e-7*(1. + 0.79 + 0.43);
 const Float K3 = sum/3.0;
 const Float K1 = sum/3.0;
@@ -40,10 +41,10 @@ const Float K2 = sum/3.0;
 
 const Float t1 = K1/K3;
 const Float t2 = K2/K3;
+*/
 
-
-//const Float lambda = 4.88e-5; //cm  scatmc
-const Float lambda = 5.145e-5; //stark97, experimental
+const Float lambda = 4.88e-5; //cm  scatmc
+//const Float lambda = 5.145e-5; //stark97, experimental
 //const Float lambda = 5.464e-5; //stark97, calculation
 //const Float lambda = 4.05e-5;  //wiersma99
 //const Float lambda = 5.50e-5;
